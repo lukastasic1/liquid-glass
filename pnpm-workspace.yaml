@@ -1,0 +1,7 @@
+packages:
+  - liquid-glass-example
+
+onlyBuiltDependencies:
+  - '@tailwindcss/oxide'
+  - sharp
+  - unrs-resolver

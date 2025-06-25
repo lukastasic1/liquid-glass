@@ -1,39 +1,56 @@
 {
-  "name": "liquid-glass-react",
-  "version": "1.1.1",
+  "name": "@nkzw/liquid-glass",
+  "version": "1.2.0",
   "description": "Apple's Liquid Glass effect for React",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
-  "files": ["dist"],
-  "workspaces": ["liquid-glass"],
+  "keywords": [
+    "react",
+    "component",
+    "library",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nkzw-tech/liquid-glass"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Christoph Nakazawa",
+    "email": "christoph.pojer@gmail.com"
+  },
+  "type": "module",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
   "scripts": {
-    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:types",
-    "build:esm": "esbuild src/index.tsx --bundle --format=esm --outfile=dist/index.esm.js --external:react --external:react-dom",
-    "build:cjs": "esbuild src/index.tsx --bundle --format=cjs --outfile=dist/index.js --external:react --external:react-dom",
-    "build:types": "tsc --emitDeclarationOnly --outDir dist",
-    "clean": "rm -rf dist",
-    "dev": "npm run build:esm -- --watch",
-    "prepublishOnly": "npm run build"
+    "build": "mkdir -p lib && tsdown src/index.tsx -d lib --target=node22 --format=esm --clean --dts",
+    "format": "prettier --experimental-cli --write .",
+    "lint": "eslint --cache .",
+    "lint:format": "prettier --experimental-cli --cache --check .",
+    "test": "npm-run-all --parallel tsc:check lint lint:format",
+    "tsc:check": "tsc"
+  },
+  "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.2",
+    "@nkzw/eslint-config": "^3.0.1",
+    "@prettier/plugin-oxc": "^0.0.4",
+    "@types/node": "^24.0.3",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@typescript-eslint/eslint-plugin": "^8.35.0",
+    "@typescript-eslint/parser": "^8.35.0",
+    "eslint": "^9.29.0",
+    "npm-run-all2": "^8.0.4",
+    "prettier": "^3.6.0",
+    "prettier-plugin-packagejson": "^2.5.15",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tsdown": "^0.12.8",
+    "typescript": "^5.8.3"
   },
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "esbuild": "^0.19.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^5.0.0"
-  },
-  "keywords": ["react", "component", "library", "typescript"],
-  "author": "",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": ""
   }
 }

@@ -2,15 +2,19 @@
 
 Apple's Liquid Glass effect for React.
 
-Card Example              |  Button Example
-:-------------------------:|:-------------------------:
-![](https://github.com/rdev/liquid-glass-react/raw/master/assets/card.png)  |  ![](https://github.com/rdev/liquid-glass-react/raw/master/assets/button.png)
+|                                Card Example                                |                                Button Example                                |
+| :------------------------------------------------------------------------: | :--------------------------------------------------------------------------: |
+| ![](https://github.com/rdev/liquid-glass-react/raw/master/assets/card.png) | ![](https://github.com/rdev/liquid-glass-react/raw/master/assets/button.png) |
 
-## 🎬  Demo
+## 🎬 Demo
 
 [Click here](https://liquid-glass.maxrovensky.com) to see it in action!
 
 ![project liquid gif](./assets/project-liquid.gif)
+
+## What is this?
+
+A fork of [`liquid-glass-react`](https://github.com/rdev/liquid-glass-react) with styling fixes, TypeScript package fixes, and some simplifications.
 
 ## ✨ Features
 
@@ -20,7 +24,6 @@ Card Example              |  Button Example
 - Supports arbitrary child elements
 - Configurable paddings
 - Correct hover and click effects
-- Edges and highlights take on the underlying light like Apple's does
 - Configurable chromatic aberration
 - Configurable elasticity, to mimic Apple's "liquid" feel
 
@@ -31,13 +34,13 @@ Card Example              |  Button Example
 ### Installation
 
 ```bash
-npm install liquid-glass-react
+npm install @nkzw/liquid-glass
 ```
 
 ### Basic Usage
 
 ```tsx
-import LiquidGlass from 'liquid-glass-react'
+import LiquidGlass from '@nkzw/liquid-glass';
 
 function App() {
   return (
@@ -47,7 +50,7 @@ function App() {
         <p>This will have the liquid glass effect</p>
       </div>
     </LiquidGlass>
-  )
+  );
 }
 ```
 
@@ -74,7 +77,7 @@ When you want the glass effect to respond to mouse movement over a larger area (
 
 ```tsx
 function App() {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null);
 
   return (
     <div ref={containerRef} className="w-full h-screen bg-image">
@@ -88,27 +91,27 @@ function App() {
         </div>
       </LiquidGlass>
     </div>
-  )
+  );
 }
 ```
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `children` | `React.ReactNode` | - | The content to render inside the glass container |
-| `displacementScale` | `number` | `70` | Controls the intensity of the displacement effect |
-| `blurAmount` | `number` | `0.0625` | Controls the blur/frosting level |
-| `saturation` | `number` | `140` | Controls color saturation of the glass effect |
-| `aberrationIntensity` | `number` | `2` | Controls chromatic aberration intensity |
-| `elasticity` | `number` | `0.15` | Controls the "liquid" elastic feel (0 = rigid, higher = more elastic) |
-| `cornerRadius` | `number` | `999` | Border radius in pixels |
-| `className` | `string` | `""` | Additional CSS classes |
-| `padding` | `string` | - | CSS padding value |
-| `style` | `React.CSSProperties` | - | Additional inline styles |
-| `overLight` | `boolean` | `false` | Whether the glass is over a light background |
-| `onClick` | `() => void` | - | Click handler |
-| `mouseContainer` | `React.RefObject<HTMLElement \| null> \| null` | `null` | Container element to track mouse movement on (defaults to the glass component itself) |
-| `mode` | `"standard" \| "polar" \| "prominent" \| "shader"` | `"standard"` | Refraction mode for different visual effects. `shader` is the most accurate but not the most stable. |
-| `globalMousePos` | `{ x: number; y: number }` | - | Global mouse position coordinates for manual control |
-| `mouseOffset` | `{ x: number; y: number }` | - | Mouse position offset for fine-tuning positioning |
+| Prop                  | Type                                               | Default      | Description                                                                                          |
+| --------------------- | -------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------- |
+| `children`            | `React.ReactNode`                                  | -            | The content to render inside the glass container                                                     |
+| `displacementScale`   | `number`                                           | `70`         | Controls the intensity of the displacement effect                                                    |
+| `blurAmount`          | `number`                                           | `0.0625`     | Controls the blur/frosting level                                                                     |
+| `saturation`          | `number`                                           | `140`        | Controls color saturation of the glass effect                                                        |
+| `aberrationIntensity` | `number`                                           | `2`          | Controls chromatic aberration intensity                                                              |
+| `elasticity`          | `number`                                           | `0.15`       | Controls the "liquid" elastic feel (0 = rigid, higher = more elastic)                                |
+| `cornerRadius`        | `number`                                           | `999`        | Border radius in pixels                                                                              |
+| `className`           | `string`                                           | `""`         | Additional CSS classes                                                                               |
+| `padding`             | `string`                                           | -            | CSS padding value                                                                                    |
+| `style`               | `React.CSSProperties`                              | -            | Additional inline styles                                                                             |
+| `overLight`           | `boolean`                                          | `false`      | Whether the glass is over a light background                                                         |
+| `onClick`             | `() => void`                                       | -            | Click handler                                                                                        |
+| `mouseContainer`      | `React.RefObject<HTMLElement \| null> \| null`     | `null`       | Container element to track mouse movement on (defaults to the glass component itself)                |
+| `mode`                | `"standard" \| "polar" \| "prominent" \| "shader"` | `"standard"` | Refraction mode for different visual effects. `shader` is the most accurate but not the most stable. |
+| `globalMousePos`      | `{ x: number; y: number }`                         | -            | Global mouse position coordinates for manual control                                                 |
+| `mouseOffset`         | `{ x: number; y: number }`                         | -            | Mouse position offset for fine-tuning positioning                                                    |
