@@ -57,14 +57,14 @@ function App() {
 
 ```tsx
 <LiquidGlass
-  displacementScale={64}
-  blurAmount={0.1}
-  saturation={130}
   aberrationIntensity={2}
+  blurAmount={0.1}
+  borderRadius={100}
+  displacementScale={64}
   elasticity={0.35}
-  cornerRadius={100}
-  padding="8px 16px"
   onClick={() => console.log('Button clicked!')}
+  padding="8px 16px"
+  saturation={130}
 >
   <span className="text-white font-medium">Click Me</span>
 </LiquidGlass>
@@ -104,7 +104,7 @@ function App() {
 | `saturation`          | `number`                                           | `140`        | Controls color saturation of the glass effect                                                        |
 | `aberrationIntensity` | `number`                                           | `2`          | Controls chromatic aberration intensity                                                              |
 | `elasticity`          | `number`                                           | `0.15`       | Controls the "liquid" elastic feel (0 = rigid, higher = more elastic)                                |
-| `cornerRadius`        | `number`                                           | `999`        | Border radius in pixels                                                                              |
+| `borderRadius`        | `number`                                           | `999`        | Border radius in pixels                                                                              |
 | `className`           | `string`                                           | `""`         | Additional CSS classes                                                                               |
 | `padding`             | `string`                                           | -            | CSS padding value                                                                                    |
 | `style`               | `React.CSSProperties`                              | -            | Additional inline styles                                                                             |

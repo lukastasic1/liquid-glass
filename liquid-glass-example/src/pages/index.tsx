@@ -15,7 +15,7 @@ export default function Home() {
   const [saturation, setSaturation] = useState(140);
   const [aberrationIntensity, setAberrationIntensity] = useState(2);
   const [elasticity, setElasticity] = useState(0);
-  const [cornerRadius, setCornerRadius] = useState(32);
+  const [borderRadius, setBorderRadius] = useState(32);
   const [userInfoOverLight, setUserInfoOverLight] = useState(false);
   const [userInfoMode, setUserInfoMode] = useState<
     'standard' | 'polar' | 'prominent' | 'shader'
@@ -27,7 +27,7 @@ export default function Home() {
   const [logoutSaturation, setLogoutSaturation] = useState(130);
   const [logoutAberrationIntensity, setLogoutAberrationIntensity] = useState(2);
   const [logoutElasticity, setLogoutElasticity] = useState(0.35);
-  const [logoutCornerRadius, setLogoutCornerRadius] = useState(100);
+  const [logoutBorderRadius, setLogoutBorderRadius] = useState(100);
   const [logoutOverLight, setLogoutOverLight] = useState(false);
   const [logoutMode, setLogoutMode] = useState<
     'standard' | 'polar' | 'prominent' | 'shader'
@@ -103,7 +103,7 @@ export default function Home() {
           <LiquidGlass
             aberrationIntensity={aberrationIntensity}
             blurAmount={blurAmount}
-            cornerRadius={cornerRadius}
+            borderRadius={borderRadius}
             displacementScale={displacementScale}
             elasticity={elasticity}
             mode={userInfoMode}
@@ -111,9 +111,9 @@ export default function Home() {
             overLight={scrollingOverBrightSection || userInfoOverLight}
             saturation={saturation}
             style={{
-              left: 300,
+              left: '40%',
               position: 'fixed',
-              top: 200,
+              top: '30%',
             }}
           >
             <div className="w-72 text-shadow-lg">
@@ -151,7 +151,7 @@ export default function Home() {
           <LiquidGlass
             aberrationIntensity={logoutAberrationIntensity}
             blurAmount={logoutBlurAmount}
-            cornerRadius={logoutCornerRadius}
+            borderRadius={logoutBorderRadius}
             displacementScale={logoutDisplacementScale}
             elasticity={logoutElasticity}
             mode={logoutMode}
@@ -165,7 +165,7 @@ export default function Home() {
             saturation={logoutSaturation}
             style={{
               left: '40%',
-              position: 'fixed',
+              position: 'absolute',
               top: '20%',
             }}
           >
@@ -454,24 +454,24 @@ export default function Home() {
 
               <div>
                 <span className="block text-sm font-semibold text-white/90 mb-3">
-                  Corner Radius
+                  Border Radius
                 </span>
                 <div className="mb-2">
                   <span className="text-xl font-mono text-pink-300">
-                    {cornerRadius === 999 ? 'Full' : `${cornerRadius}px`}
+                    {borderRadius === 999 ? 'Full' : `${borderRadius}px`}
                   </span>
                 </div>
                 <input
                   className="w-full"
                   max="100"
                   min="0"
-                  onChange={(e) => setCornerRadius(Number(e.target.value))}
+                  onChange={(e) => setBorderRadius(Number(e.target.value))}
                   step="1"
                   type="range"
-                  value={cornerRadius}
+                  value={borderRadius}
                 />
                 <p className="text-xs text-white/50 mt-2">
-                  Controls the roundness of the glass corners
+                  Controls the roundness of the glass borders
                 </p>
               </div>
 
@@ -736,13 +736,13 @@ export default function Home() {
 
               <div>
                 <span className="block text-sm font-semibold text-white/90 mb-3">
-                  Corner Radius
+                  Border Radius
                 </span>
                 <div className="mb-2">
                   <span className="text-xl font-mono text-pink-300">
-                    {logoutCornerRadius === 999
+                    {logoutBorderRadius === 999
                       ? 'Full'
-                      : `${logoutCornerRadius}px`}
+                      : `${logoutBorderRadius}px`}
                   </span>
                 </div>
                 <input
@@ -750,14 +750,14 @@ export default function Home() {
                   max="100"
                   min="0"
                   onChange={(e) =>
-                    setLogoutCornerRadius(Number(e.target.value))
+                    setLogoutBorderRadius(Number(e.target.value))
                   }
                   step="1"
                   type="range"
-                  value={logoutCornerRadius}
+                  value={logoutBorderRadius}
                 />
                 <p className="text-xs text-white/50 mt-2">
-                  Controls the roundness of the glass corners
+                  Controls the roundness of the glass borders
                 </p>
               </div>
 
