@@ -9,7 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "liquid-glass-react": "^1.0.2",
+    "@nkzw/liquid-glass": "workspace:*",
     "lucide-react": "^0.514.0",
     "next": "15.3.3",
     "react": "^19.0.0",

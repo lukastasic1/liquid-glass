@@ -1,6 +1,6 @@
 import { Geist } from 'next/font/google';
 import { useState, useRef } from 'react';
-import LiquidGlass from 'liquid-glass-react';
+import LiquidGlass from '@nkzw/liquid-glass';
 import { LogOutIcon, Github } from 'lucide-react';
 
 const geistSans = Geist({
@@ -111,9 +111,9 @@ export default function Home() {
             overLight={scrollingOverBrightSection || userInfoOverLight}
             saturation={saturation}
             style={{
-              left: '40%',
+              left: 300,
               position: 'fixed',
-              top: '25%',
+              top: 200,
             }}
           >
             <div className="w-72 text-shadow-lg">

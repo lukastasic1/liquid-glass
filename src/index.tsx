@@ -56,21 +56,16 @@ const getMap = (
 const GlassFilter: React.FC<{
   aberrationIntensity: number;
   displacementScale: number;
-  height: number;
   id: string;
   mode: 'standard' | 'polar' | 'prominent' | 'shader';
   shaderMapUrl?: string;
-  width: number;
-}> = ({
-  aberrationIntensity,
-  displacementScale,
-  height,
-  id,
-  mode,
-  shaderMapUrl,
-  width,
-}) => (
-  <svg aria-hidden="true" style={{ height, position: 'absolute', width }}>
+}> = ({ aberrationIntensity, displacementScale, id, mode, shaderMapUrl }) => (
+  <svg
+    aria-hidden="true"
+    height="100%"
+    style={{ position: 'absolute' }}
+    width="100%"
+  >
     <defs>
       <radialGradient cx="50%" cy="50%" id={`${id}-edge-mask`} r="50%">
         <stop offset="0%" stopColor="black" stopOpacity="0" />
@@ -235,7 +230,6 @@ const GlassContainer = forwardRef<
   HTMLDivElement,
   React.PropsWithChildren<{
     aberrationIntensity?: number;
-    active?: boolean;
     blurAmount?: number;
     className?: string;
     cornerRadius?: number;
@@ -257,7 +251,6 @@ const GlassContainer = forwardRef<
   (
     {
       aberrationIntensity = 2,
-      active = false,
       blurAmount = 12,
       children,
       className = '',
@@ -300,23 +293,24 @@ const GlassContainer = forwardRef<
 
     return (
       <div
-        className={`relative ${className} ${active ? 'active' : ''} ${onClick ? 'cursor-pointer' : ''}`}
+        className={className}
         onClick={onClick}
         ref={ref}
-        style={style}
+        style={{
+          position: 'relative',
+          ...(onClick ? { cursor: 'pointer' } : null),
+          ...style,
+        }}
       >
         <GlassFilter
           aberrationIntensity={aberrationIntensity}
           displacementScale={displacementScale}
-          height={glassSize.height}
           id={filterId}
           mode={mode}
           shaderMapUrl={shaderMapUrl}
-          width={glassSize.width}
         />
 
         <div
-          className="glass"
           onMouseDown={onMouseDown}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
@@ -337,11 +331,12 @@ const GlassContainer = forwardRef<
         >
           {/* backdrop layer that gets wiggly */}
           <span
-            className="glass__warp"
             style={
               {
                 ...backdropStyle,
+                borderRadius: `${cornerRadius}px`,
                 inset: '0',
+                overflow: 'hidden',
                 position: 'absolute',
               } as CSSProperties
             }
@@ -349,13 +344,14 @@ const GlassContainer = forwardRef<
 
           {/* user content stays sharp */}
           <div
-            className="transition-all duration-150 ease-in-out text-white"
             style={{
+              color: overLight ? '#000' : '#fff',
               font: '500 20px/1 system-ui',
               position: 'relative',
               textShadow: overLight
                 ? '0px 2px 12px rgba(0, 0, 0, 0)'
                 : '0px 2px 12px rgba(0, 0, 0, 0.4)',
+              transition: 'all 150ms ease-in-out',
               zIndex: 1,
             }}
           >
@@ -609,34 +605,37 @@ export default function LiquidGlass({
   };
 
   return (
-    <>
+    <div style={{ position: 'relative' }}>
       {/* Over light effect */}
       <div
-        className={`bg-black transition-all duration-150 ease-in-out pointer-events-none ${overLight ? 'opacity-20' : 'opacity-0'}`}
         style={{
           ...positionStyles,
+          backgroundColor: '#111',
           borderRadius: `${cornerRadius}px`,
           height: glassSize.height,
+          opacity: overLight ? 0.2 : 0,
+          pointerEvents: 'none',
           transform: baseStyle.transform,
-          transition: baseStyle.transition,
+          transition: baseStyle.transition || 'all 150ms ease-in-out',
           width: glassSize.width,
         }}
       />
       <div
-        className={`bg-black transition-all duration-150 ease-in-out pointer-events-none mix-blend-overlay ${overLight ? 'opacity-100' : 'opacity-0'}`}
         style={{
           ...positionStyles,
+          backgroundColor: '#111',
           borderRadius: `${cornerRadius}px`,
           height: glassSize.height,
+          opacity: overLight ? 0.2 : 0,
+          pointerEvents: 'none',
           transform: baseStyle.transform,
-          transition: baseStyle.transition,
+          transition: baseStyle.transition || 'all 150ms ease-in-out',
           width: glassSize.width,
         }}
       />
 
       <GlassContainer
         aberrationIntensity={aberrationIntensity}
-        active={isActive}
         blurAmount={blurAmount}
         className={className}
         cornerRadius={cornerRadius}
@@ -681,7 +680,7 @@ export default function LiquidGlass({
           padding: '1.5px',
           pointerEvents: 'none',
           transform: baseStyle.transform,
-          transition: baseStyle.transition,
+          transition: 'background 150ms ease-in-out',
           WebkitMask:
             'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
           WebkitMaskComposite: 'xor',
@@ -709,7 +708,7 @@ export default function LiquidGlass({
           padding: '1.5px',
           pointerEvents: 'none',
           transform: baseStyle.transform,
-          transition: baseStyle.transition,
+          transition: 'background 150ms ease-in-out',
           WebkitMask:
             'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
           WebkitMaskComposite: 'xor',
@@ -769,6 +768,6 @@ export default function LiquidGlass({
           />
         </>
       )}
-    </>
+    </div>
   );
 }

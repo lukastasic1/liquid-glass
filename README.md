@@ -16,6 +16,12 @@ Apple's Liquid Glass effect for React.
 
 A fork of [`liquid-glass-react`](https://github.com/rdev/liquid-glass-react) with styling fixes, TypeScript package fixes, and some simplifications.
 
+## Getting Started
+
+```bash
+npm install @nkzw/liquid-glass
+```
+
 ## ✨ Features
 
 - Proper edgy bending and refraction
@@ -24,20 +30,13 @@ A fork of [`liquid-glass-react`](https://github.com/rdev/liquid-glass-react) wit
 - Supports arbitrary child elements
 - Configurable paddings
 - Correct hover and click effects
+- Edges and highlights take on the underlying light like Apple's does
 - Configurable chromatic aberration
 - Configurable elasticity, to mimic Apple's "liquid" feel
 
 > **⚠️ NOTE:** Safari and Firefox only partially support the effect (displacement will not be visible)
 
-## 🚀 Usage
-
-### Installation
-
-```bash
-npm install @nkzw/liquid-glass
-```
-
-### Basic Usage
+## Basic Usage
 
 ```tsx
 import LiquidGlass from '@nkzw/liquid-glass';
