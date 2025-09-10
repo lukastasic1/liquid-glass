@@ -3,8 +3,6 @@ import {
   forwardRef,
   PropsWithChildren,
   ReactNode,
-  RefObject,
-  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -26,6 +24,12 @@ const generateShaderDisplacementMap = (
   width: number,
   height: number,
 ): string => {
+  // Guard against invalid dimensions
+  if (!width || !height || width <= 0 || height <= 0) {
+    console.warn('Invalid dimensions for shader generation:', { width, height });
+    return '';
+  }
+  
   const generator = new ShaderDisplacementGenerator({
     fragment: fragmentShaders.liquidGlass,
     height,
@@ -42,7 +46,9 @@ const getMap = (
   mode: 'standard' | 'polar' | 'prominent' | 'shader',
   shaderMapUrl?: string,
 ) => {
-  switch (mode) {
+  // Default to "standard" if mode is empty or undefined
+  const safeMode = mode || 'standard';
+  switch (safeMode) {
     case 'standard':
       return displacementMap;
     case 'polar':
@@ -52,7 +58,7 @@ const getMap = (
     case 'shader':
       return shaderMapUrl || displacementMap;
     default:
-      throw new Error(`Invalid mode: ${mode}`);
+      throw new Error(`Invalid mode: ${safeMode}`);
   }
 };
 
@@ -244,7 +250,6 @@ type GlassContainerProps = PropsWithChildren<{
   displacementScale?: number;
   glassSize: { height: number; width: number };
   mode?: 'standard' | 'polar' | 'prominent' | 'shader';
-  mouseOffset?: { x: number; y: number };
   onClick?: () => void;
   onMouseDown?: () => void;
   onMouseEnter?: () => void;
@@ -286,7 +291,7 @@ const GlassContainer = forwardRef<HTMLDivElement, GlassContainerProps>(
 
     // Generate shader displacement map when in shader mode
     useEffect(() => {
-      if (mode === 'shader') {
+      if (mode === 'shader' && glassSize.width > 0 && glassSize.height > 0) {
         const url = generateShaderDisplacementMap(
           glassSize.width,
           glassSize.height,
@@ -383,11 +388,7 @@ export type LiquidGlassProps = {
   children: ReactNode;
   className?: string;
   displacementScale?: number;
-  elasticity?: number;
-  globalMousePos?: { x: number; y: number };
   mode?: 'standard' | 'polar' | 'prominent' | 'shader';
-  mouseContainer?: RefObject<HTMLElement | null> | null;
-  mouseOffset?: { x: number; y: number };
   onClick?: () => void;
   overLight?: boolean;
   padding?: string;
@@ -402,11 +403,7 @@ export default function LiquidGlass({
   children,
   className = '',
   displacementScale = 70,
-  elasticity = 0.15,
-  globalMousePos: externalGlobalMousePos,
   mode = 'standard',
-  mouseContainer = null,
-  mouseOffset: externalMouseOffset,
   onClick,
   overLight = false,
   padding = '24px 32px',
@@ -414,178 +411,14 @@ export default function LiquidGlass({
   style,
 }: LiquidGlassProps) {
   const glassRef = useRef<HTMLDivElement>(null);
+  const isStickyOrFixed = style?.position === 'fixed' || style?.position === 'sticky';
   const [isHovered, setIsHovered] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [glassSize, setGlassSize] = useState({ height: 0, width: 0 });
-  const [internalGlobalMousePos, setInternalGlobalMousePos] = useState({
-    x: 0,
-    y: 0,
-  });
-  const [internalMouseOffset, setInternalMouseOffset] = useState({
-    x: 0,
-    y: 0,
-  });
 
-  // Use external mouse position if provided, otherwise use internal
-  const globalMousePos = externalGlobalMousePos || internalGlobalMousePos;
-  const mouseOffset = externalMouseOffset || internalMouseOffset;
+  // Mouse tracking removed - no longer needed without elasticity
 
-  // Internal mouse tracking
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      const container = mouseContainer?.current || glassRef.current;
-      if (!container) {
-        return;
-      }
-
-      const rect = container.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-
-      setInternalMouseOffset({
-        x: ((e.clientX - centerX) / rect.width) * 100,
-        y: ((e.clientY - centerY) / rect.height) * 100,
-      });
-
-      setInternalGlobalMousePos({
-        x: e.clientX,
-        y: e.clientY,
-      });
-    },
-    [mouseContainer],
-  );
-
-  // Set up mouse tracking if no external mouse position is provided
-  useEffect(() => {
-    if (externalGlobalMousePos && externalMouseOffset) {
-      // External mouse tracking is provided, don't set up internal tracking
-      return;
-    }
-
-    const container = mouseContainer?.current || glassRef.current;
-    if (!container) {
-      return;
-    }
-
-    container.addEventListener('mousemove', handleMouseMove);
-
-    return () => {
-      container.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, [
-    handleMouseMove,
-    mouseContainer,
-    externalGlobalMousePos,
-    externalMouseOffset,
-  ]);
-
-  // Calculate directional scaling based on mouse position
-  const calculateDirectionalScale = useCallback(() => {
-    if (!globalMousePos.x || !globalMousePos.y || !glassRef.current) {
-      return 'scale(1)';
-    }
-
-    const rect = glassRef.current.getBoundingClientRect();
-    const pillCenterX = rect.left + rect.width / 2;
-    const pillCenterY = rect.top + rect.height / 2;
-    const pillWidth = glassSize.width;
-    const pillHeight = glassSize.height;
-
-    const deltaX = globalMousePos.x - pillCenterX;
-    const deltaY = globalMousePos.y - pillCenterY;
-
-    // Calculate distance from mouse to pill edges (not center)
-    const edgeDistanceX = Math.max(0, Math.abs(deltaX) - pillWidth / 2);
-    const edgeDistanceY = Math.max(0, Math.abs(deltaY) - pillHeight / 2);
-    const edgeDistance = Math.sqrt(
-      edgeDistanceX * edgeDistanceX + edgeDistanceY * edgeDistanceY,
-    );
-
-    // Activation zone: 200px from edges
-    const activationZone = 200;
-
-    // If outside activation zone, no effect
-    if (edgeDistance > activationZone) {
-      return 'scale(1)';
-    }
-
-    // Calculate fade-in factor (1 at edge, 0 at activation zone boundary)
-    const fadeInFactor = 1 - edgeDistance / activationZone;
-
-    // Normalize the deltas for direction
-    const centerDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    if (centerDistance === 0) {
-      return 'scale(1)';
-    }
-
-    const normalizedX = deltaX / centerDistance;
-    const normalizedY = deltaY / centerDistance;
-
-    // Calculate stretch factors with fade-in
-    const stretchIntensity =
-      Math.min(centerDistance / 300, 1) * elasticity * fadeInFactor;
-
-    // X-axis scaling: stretch horizontally when moving left/right, compress when moving up/down
-    const scaleX =
-      1 +
-      Math.abs(normalizedX) * stretchIntensity * 0.3 -
-      Math.abs(normalizedY) * stretchIntensity * 0.15;
-
-    // Y-axis scaling: stretch vertically when moving up/down, compress when moving left/right
-    const scaleY =
-      1 +
-      Math.abs(normalizedY) * stretchIntensity * 0.3 -
-      Math.abs(normalizedX) * stretchIntensity * 0.15;
-
-    return `scaleX(${Math.max(0.8, scaleX)}) scaleY(${Math.max(0.8, scaleY)})`;
-  }, [globalMousePos, elasticity, glassSize]);
-
-  // Helper function to calculate fade-in factor based on distance from element edges
-  const calculateFadeInFactor = useCallback(() => {
-    if (!globalMousePos.x || !globalMousePos.y || !glassRef.current) {
-      return 0;
-    }
-
-    const rect = glassRef.current.getBoundingClientRect();
-    const pillCenterX = rect.left + rect.width / 2;
-    const pillCenterY = rect.top + rect.height / 2;
-    const pillWidth = glassSize.width;
-    const pillHeight = glassSize.height;
-
-    const edgeDistanceX = Math.max(
-      0,
-      Math.abs(globalMousePos.x - pillCenterX) - pillWidth / 2,
-    );
-    const edgeDistanceY = Math.max(
-      0,
-      Math.abs(globalMousePos.y - pillCenterY) - pillHeight / 2,
-    );
-    const edgeDistance = Math.sqrt(
-      edgeDistanceX * edgeDistanceX + edgeDistanceY * edgeDistanceY,
-    );
-
-    const activationZone = 200;
-    return edgeDistance > activationZone
-      ? 0
-      : 1 - edgeDistance / activationZone;
-  }, [globalMousePos, glassSize]);
-
-  // Helper function to calculate elastic translation
-  const calculateElasticTranslation = useCallback(() => {
-    if (!glassRef.current) {
-      return { x: 0, y: 0 };
-    }
-
-    const fadeInFactor = calculateFadeInFactor();
-    const rect = glassRef.current.getBoundingClientRect();
-    const pillCenterX = rect.left + rect.width / 2;
-    const pillCenterY = rect.top + rect.height / 2;
-
-    return {
-      x: (globalMousePos.x - pillCenterX) * elasticity * 0.1 * fadeInFactor,
-      y: (globalMousePos.y - pillCenterY) * elasticity * 0.1 * fadeInFactor,
-    };
-  }, [globalMousePos, elasticity, calculateFadeInFactor]);
+  // Calculation functions removed - no longer needed without elasticity
 
   // Update glass size whenever component mounts or window resizes
   useLayoutEffect(() => {
@@ -599,28 +432,34 @@ export default function LiquidGlass({
     updateGlassSize();
     window.addEventListener('resize', updateGlassSize);
     return () => window.removeEventListener('resize', updateGlassSize);
-  }, []);
-
-  const isStickyOrFixed =
-    style?.position === 'fixed' || style?.position === 'sticky';
+  }, [isStickyOrFixed]);
+  
+  // Separate positioning styles from transform styles
+  const { position, top, left, right, bottom, zIndex, transform: userTransform, ...otherStyles } = style || {};
+  const positioningStyles = isStickyOrFixed ? { position, top, left, right, bottom, zIndex } : {};
+  
   const transformStyle = {
-    ...(isStickyOrFixed ? style : null),
-    transform: `translate(calc(-50% + ${
-      calculateElasticTranslation().x
-    }px), calc(-50% + ${calculateElasticTranslation().y}px)) ${
-      isActive && Boolean(onClick) ? 'scale(0.96)' : calculateDirectionalScale()
-    }`,
+    ...(!isStickyOrFixed ? otherStyles : {}), // Only include non-positioning styles for non-fixed elements
+    transform: isStickyOrFixed 
+      ? `${userTransform || ''} ${isActive && Boolean(onClick) ? "scale(0.96)" : "scale(1)"}`.trim()
+      : `translate(-50%, -50%) ${isActive && Boolean(onClick) ? "scale(0.96)" : "scale(1)"}`,
     transition: 'all ease-out 0.2s',
   };
 
   return (
     <div
-      style={isStickyOrFixed ? undefined : { position: 'relative', ...style }}
+      style={isStickyOrFixed ? {
+        // For fixed/sticky elements, apply positioning to the container
+        ...positioningStyles,
+      } : {
+        position: 'relative',
+        ...style
+      }}
     >
       {/* Over light effect */}
       <div
         style={{
-          position: 'absolute',
+          position: isStickyOrFixed ? 'fixed' : 'absolute',
           ...transformStyle,
           backgroundColor: '#111',
           borderRadius,
@@ -632,7 +471,7 @@ export default function LiquidGlass({
       />
       <div
         style={{
-          position: 'absolute',
+          position: isStickyOrFixed ? 'fixed' : 'absolute',
           ...transformStyle,
           backgroundColor: '#111',
           borderRadius,
@@ -653,7 +492,6 @@ export default function LiquidGlass({
         }
         glassSize={glassSize}
         mode={mode}
-        mouseOffset={mouseOffset}
         onClick={onClick}
         onMouseDown={() => setIsActive(true)}
         onMouseEnter={() => setIsHovered(true)}
@@ -663,7 +501,11 @@ export default function LiquidGlass({
         padding={padding}
         ref={glassRef}
         saturation={saturation}
-        style={transformStyle}
+        style={isStickyOrFixed ? { 
+          ...transformStyle,
+          willChange: 'transform', // Optimize for frequent changes
+          backfaceVisibility: 'hidden' // Prevent flickers
+        } : transformStyle}
       >
         {children}
       </GlassContainer>
@@ -673,31 +515,27 @@ export default function LiquidGlass({
         <>
           <span
             style={{
-              position: 'absolute',
+              position: isStickyOrFixed ? 'fixed' : 'absolute',
               ...transformStyle,
-              background: `linear-gradient(
-          ${135 + mouseOffset.x * 1.2}deg,
-          rgba(255, 255, 255, 0.0) 0%,
-          rgba(255, 255, 255, ${
-            0.12 + Math.abs(mouseOffset.x) * 0.008
-          }) ${Math.max(10, 33 + mouseOffset.y * 0.3)}%,
-          rgba(255, 255, 255, ${
-            0.4 + Math.abs(mouseOffset.x) * 0.012
-          }) ${Math.min(90, 66 + mouseOffset.y * 0.4)}%,
-          rgba(255, 255, 255, 0.0) 100%
-        )`,
+              background: `linear-gradient(135deg, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.12) 33%, rgba(255, 255, 255, 0.4) 66%, rgba(255, 255, 255, 0.0) 100%)`,
               borderRadius,
               boxShadow:
                 '0 0 0 0.5px rgba(255, 255, 255, 0.5) inset, 0 1px 3px rgba(255, 255, 255, 0.25) inset, 0 1px 4px rgba(0, 0, 0, 0.35)',
               height: glassSize.height,
-              maskComposite: 'exclude',
-              mixBlendMode: 'screen',
+              ...(isStickyOrFixed ? {} : {
+                maskComposite: 'exclude',
+                mixBlendMode: 'screen',
+              }),
               opacity: 0.2,
               padding: '1.5px',
               pointerEvents: 'none',
-              WebkitMask:
-                'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
-              WebkitMaskComposite: 'xor',
+              ...(isStickyOrFixed ? {
+                WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
+                WebkitMaskComposite: 'xor',
+              } : {
+                WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
+                WebkitMaskComposite: 'xor',
+              }),
               width: glassSize.width,
             }}
           />
@@ -705,30 +543,23 @@ export default function LiquidGlass({
           {/* Border layer 2 - duplicate with mix-blend-overlay */}
           <span
             style={{
-              position: 'absolute',
+              position: isStickyOrFixed ? 'fixed' : 'absolute',
               ...transformStyle,
-              background: `linear-gradient(
-          ${135 + mouseOffset.x * 1.2}deg,
-          rgba(255, 255, 255, 0.0) 0%,
-          rgba(255, 255, 255, ${
-            0.32 + Math.abs(mouseOffset.x) * 0.008
-          }) ${Math.max(10, 33 + mouseOffset.y * 0.3)}%,
-          rgba(255, 255, 255, ${
-            0.6 + Math.abs(mouseOffset.x) * 0.012
-          }) ${Math.min(90, 66 + mouseOffset.y * 0.4)}%,
-          rgba(255, 255, 255, 0.0) 100%
-        )`,
+              background: `linear-gradient(135deg, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.15) 33%, rgba(255, 255, 255, 0.3) 66%, rgba(255, 255, 255, 0.0) 100%)`,
               borderRadius,
               boxShadow:
                 '0 0 0 0.5px rgba(255, 255, 255, 0.5) inset, 0 1px 3px rgba(255, 255, 255, 0.25) inset, 0 1px 4px rgba(0, 0, 0, 0.35)',
               height: glassSize.height,
-              maskComposite: 'exclude',
-              mixBlendMode: 'overlay',
+              ...(isStickyOrFixed ? {} : {
+                maskComposite: 'exclude',
+                mixBlendMode: 'overlay',
+              }),
               padding: '1.5px',
               pointerEvents: 'none',
-              WebkitMask:
-                'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
-              WebkitMaskComposite: 'xor',
+              ...(isStickyOrFixed ? {} : {
+                WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
+                WebkitMaskComposite: 'xor',
+              }),
               width: glassSize.width,
             }}
           />
@@ -747,7 +578,7 @@ export default function LiquidGlass({
               mixBlendMode: 'overlay',
               opacity: isHovered || isActive ? 0.5 : 0,
               pointerEvents: 'none',
-              position: transformStyle.position || 'absolute',
+              position: isStickyOrFixed ? 'fixed' : 'absolute',
               transform: transformStyle.transform,
               transition: 'all 0.2s ease-out',
               width: glassSize.width + 1,
@@ -762,7 +593,7 @@ export default function LiquidGlass({
               mixBlendMode: 'overlay',
               opacity: isActive ? 0.5 : 0,
               pointerEvents: 'none',
-              position: transformStyle.position || 'absolute',
+              position: isStickyOrFixed ? 'fixed' : 'absolute',
               transform: transformStyle.transform,
               transition: 'all 0.2s ease-out',
               width: glassSize.width + 1,
@@ -770,7 +601,7 @@ export default function LiquidGlass({
           />
           <div
             style={{
-              position: 'absolute',
+              position: isStickyOrFixed ? 'fixed' : 'absolute',
               ...transformStyle,
               backgroundImage:
                 'radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)',
